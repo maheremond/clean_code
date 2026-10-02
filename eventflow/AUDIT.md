@@ -2,47 +2,47 @@
 
 ## 1. Comportement observable
 
-L'application affiche le type de paiement, le prix de la commande, l'email du client
-sont id et son status. Elle affiche également l'état de la commande (commandée ou pas)
+L'application permet de créer une réservation, d'ajouter des articles, d'associer un client, puis de confirmer la commande via BookingService. Il calcule le montant total met à jour le statut de la réservation en "confirmed", et envoie un e-mail de confirmation.
 
 ## 2. Problèmes identifiés
 
 1
-|# problème | BookingService gère les emails à la place de EmailService
+|# problème | BookingService gère les e-mails et la logique de notification au lieu de déléguer cette responsabilité à une autre classe.
 |#catégorie | responsabilité
-|#impact    | Code pas très lisible. BookingService devient une classe trop grosse pour son utilité initiale
-
+|#impact | Couplage fort et surcharge de la classe principale, rendant le code moins maintenable.
 2
-|# problème |BookingService fait également les calculs de réduction alors que ça devrait être la charge d'une autre classe comme  BookingCalculator
+|# problème |BookingService effectue directement les calculs de réduction au lieu de déléguer cette logique à une autre classe spécialisée.
 |#catégorie | responsabilité
-|#impact    | Booking centralise toutes les classes en une seule ce qui va à terme rendre impossible la maintenance et l'évolution de l'application
+|#impact | Centralisation excessive de la logique métier dans le service, ce qui rend l'évolution des règles risquée et complexe.
 
 3
 |# problème | Sms Client n'est pas utilisé
 |#catégorie | Code mort
-|#impact    | Aggrandit la taille de l'application pour rien alors qu'on pourrait le supprimer ce qui ferait un fichier à vérifier en cas de bug ou autres problèmes
+|#impact | Aggrandit la taille de l'application pour rien alors qu'on pourrait le supprimer ce qui ferait un fichier à vérifier en cas de bug ou autres problèmes
 
 4
-|# problème | La condition de la méthode de paiement dans BookinService à trop de else ou else if inutiles   
-|#catégorie | lisibilité
-|#impact    | Cela rend le code difficile à comprendre et à évoluer 
+|# problème | La condition de la méthode de paiement dans BookinService à trop de else ou else if inutiles  
+|#catégorie | lisibilité et OCP
+|#impact | Cela rend le code difficile à comprendre et à évoluer
 
 5
-|# problème | Valeurs magiques dans BookingService
-|#catégorie | Lisibilité
-|#impact    | On ne sait pas d'où viennent les valeurs ce qui rend le code difficie  comprendre
+|# problème | Absence de gardes-fou et de validation dans BookingItem
+|#catégorie | Sécurité
+|#impact | Risque de persister ou de traiter des mauvaises données
 
 6
 |# problème | LoyaultyService n'est pas utilisé et en plus BookingService fait son job
 |#catégorie | Code mort et duplication
-|#impact    | LoyaultyService pourrait simplifier l'organisation des fichiers alors que là le fichier est inutilisé alors que sont code est dans un autre fichier
+|#impact | LoyaultyService pourrait simplifier l'organisation des fichiers alors que là le fichier est inutilisé alors que sont code est dans un autre fichier
 
 ## 3. Nos trois priorités
 
-1. BookingService fait le travail d'une autre classe (calculer le prix total)
-2. Les conditions dans BookingService
-3. La gestion d'email dans BookingService
+1. Déléguer le calcul des prix : Sortir la logique tarifaire de BookingService pour la confier à une classe dédiée (ex: BookingCalculator), parce que c'est la règle métier qui évolue le plus souvent.
+2. Clarifier les conditions de paiement : Réduire la structure du code pour éviter les conditions à rallonges ou confuses.
+3. Isoler la responsabilité des notifications : Séparer la logique métier des canaux de communication pour respecter les principes de responsabilité unique.
 
 ## 4. Risques avant refactoring
 
-Modifier tellement d'éléments que le projet devient encore moins lisible. Trop complexifier l'application pour l'ampleur des erreurs de clean code
+Effet de bord (régression) : Modifier en profondeur le coeur de l'application test de sécurité risque de casser le comportement existant.
+
+Overengineering : Complexifier excessivement l'architecture avec des motifs de conception disproportionnés par rapport à la taille réelle du projet.

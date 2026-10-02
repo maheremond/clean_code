@@ -25,7 +25,16 @@ $booking = new Booking(
 
 $booking->addItem(new BookingItem($dayTicket, 2));
 
-$service = new BookingService();
-$total = $service->confirm($booking, 'stripe');
+$calculator = new BookingCalculator();
+$reactions = new BookingReactions(
+    email: new EmailService(),
+    loyalty: new LoyaltyService(),
+    analytics: new AnalyticsClient(),
+    sms: new SmsClient()
+);
+$paymentClient = new StripeClient();
 
-echo 'TOTAL FINAL: ' . number_format($total, 2, '.', '') . PHP_EOL;
+$service = new BookingService($calculator, $reactions, $paymentClient);
+$total = $service->confirm($booking);
+
+echo 'TOTAL : ' . number_format($total, 2, '.', '') . PHP_EOL;

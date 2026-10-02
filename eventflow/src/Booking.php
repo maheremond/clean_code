@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 final class Booking
@@ -18,5 +17,18 @@ final class Booking
     public function addItem(BookingItem $item): void
     {
         $this->items[] = $item;
+    }
+
+    public function validate(): void
+    {
+        $this->customer->validate();
+
+        if (count($this->items) === 0) {
+            throw new RuntimeException('Empty booking');
+        }
+
+        foreach ($this->items as $item) {
+            $item->validate();
+        }
     }
 }
